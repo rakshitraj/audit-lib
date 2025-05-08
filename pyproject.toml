@@ -1,0 +1,13 @@
+[project]
+name = "audit-lib"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "pandas>=2.2.3",
+    "psycopg>=3.2.7",
+    "pytest>=8.3.5",
+    "sqlalchemy>=2.0.40",
+    "testcontainers>=4.10.0",
+]
