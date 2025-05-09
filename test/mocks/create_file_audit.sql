@@ -1,5 +1,3 @@
-CREATE SCHEMA IF NOT EXISTS data_store;
-
 CREATE TABLE IF NOT EXISTS data_store.file_audit (
     uuid UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     source_id VARCHAR,
