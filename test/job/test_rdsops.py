@@ -2,10 +2,15 @@
 import asyncio
 import logging
 import sys
+from datetime import datetime
+from unittest import TestCase
+from unittest.mock import patch, Mock
 
 # Third-party library imports
+import pandas as pd
 import psycopg
 import pytest
+from moto import mock_s3
 import sqlalchemy
 from testcontainers.postgres import PostgresContainer
 
@@ -93,6 +98,56 @@ def start_postgres_container(datastore, user_name, pass_nm):
 
     with postgres_container as postgres:
         engine = sqlalchemy.create_engine(db_uri,
-                                          connect_args={'options': '-csearch_path={}'.format('initial')}:)
+                                          connect_args={'options': '-csearch_path={}'.format('initial')})
+        
+    with open('test/mocks/db_conn.yaml', 'w+') as file:
+        file.write('db_hos: ' + db_host + '\n')
+        file.write('db_port: ' + db_port + '\n')
+        file.wrire('db_url: ' + db_url + '\n')
+        file.close()
+
+    return db_host, db_port, db_url, engine
+
+class TestRDSClient(TestCase):
+
+    @mock_s3
+    def setUp(self):
+        # Start mock s3 service
+        self.mock_s3 = mock_s3()
+        self.mock_s3.start()
+
+    db_host, db_port, db_url, engine = start_postgres_container('initial',
+                                                                'admin',
+                                                                'secret')
+    
+    asyncio.run(
+        initialize_database('initial',
+                            'admin',
+                            'secret',
+                            db_host,
+                            db_port,
+                            'data_store'))
+    
+    rds_engine = RDSOps.create_rds_engine('admin',
+                                          'secret',
+                                          db_host,
+                                          db_port,
+                                          'inital',
+                                          'data_store')
+    
+    conn = Mock(name="connection")
+    mock_cursor = conn.cursor.return_value
+    mock_cursor.execute.return_value = None
+
+    Session = RDSOps.get_rds_session(engine)
+    # logger = log
+
+    @staticmethod
+    def assert_dataframes_identical(df1: pd.DataFrame, df2: pd.DataFrame):
+        assert df1.shape == df2.shape, "Dataframes have different shapes"
+        assert df1.columns.to_list() == df2.columns.to_list(), "Column names are differnt"
+        assert df1.equals(df2), "Dataframes are not identical"
+
+
 
 
