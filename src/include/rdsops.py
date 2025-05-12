@@ -1,6 +1,6 @@
 from sqlalchemy import create_engine, MetaData, Table
 from sqlalchemy.orm import sessionmaker
-from urllib import quote_plus
+from urllib.parse import quote_plus
 
 class RDSOps:
     @classmethod

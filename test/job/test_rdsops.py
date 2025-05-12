@@ -8,9 +8,9 @@ from unittest.mock import patch, Mock
 
 # Third-party library imports
 import pandas as pd
-import psycopg
+import psycopg2
 import pytest
-from moto import mock_s3
+from moto import mock_aws
 import sqlalchemy
 from testcontainers.postgres import PostgresContainer
 
@@ -24,7 +24,7 @@ handler_print.setFormatter(formatter)
 
 log = logging.getLogger("RDS_TEST")
 log.addHandler(handler_print)
-log.setLevel(logging.info)
+log.setLevel(logging.INFO)
 
 def get_stmt(filename):
     with open(filename) as f:
@@ -39,7 +39,7 @@ async def initialize_database(db_name,
                               db_port,
                               schema_name_mig):
     try:
-        conn = psycopg.connect(database=db_name,
+        conn = psycopg2.connect(database=db_name,
                                user=usern,
                                password=passwd,
                                host=db_host,
@@ -80,7 +80,7 @@ async def initialize_database(db_name,
 def start_postgres_container(datastore, user_name, pass_nm):
     postgres_container = PostgresContainer('postgres:15',
                                            port=5432,
-                                           user=user_name,
+                                           username=user_name,
                                            password=pass_nm,
                                            dbname=datastore)
     postgres_container.start()
@@ -110,11 +110,11 @@ def start_postgres_container(datastore, user_name, pass_nm):
 
 class TestRDSClient(TestCase):
 
-    @mock_s3
+    @mock_aws
     def setUp(self):
         # Start mock s3 service
-        self.mock_s3 = mock_s3()
-        self.mock_s3.start()
+        self.mock_aws = mock_aws()
+        self.mock_aws.start()
 
     db_host, db_port, db_url, engine = start_postgres_container('initial',
                                                                 'admin',
